@@ -21,6 +21,14 @@ const double Z_W = 1.09;
 
 #define invgamma(v) ((v < 0.03928) ? (v / 12.92) : (pow((v + 0.055) / 1.055, 2.4)))
 
+void linear_scaling(double **L, int rows, int cols, int L_max, int L_min) {
+    for (int i = 0 ; i < rows ; i++) {
+        for (int j = 0 ; j < cols ; j++) {
+            L[i][j] = (L[i][j] - L_min) * 100 / (L_max - L_min);
+        }
+    }
+}
+
 int main(int argc, char **argv) {
     
 
@@ -184,11 +192,7 @@ int main(int argc, char **argv) {
     }
 
     // linear scaling on L
-    for (int i = 0 ; i < rows ; i++) {
-        for (int j = 0 ; j < cols ; j++) {
-            L[i][j] = (L[i][j] - L_min) * 100 / (L_max - L_min);
-        }
-    }
+    linear_scaling(L, rows, cols, L_max, L_min);
 
     // transform back to RGB
     Mat R2(rows, cols, CV_8UC1);
