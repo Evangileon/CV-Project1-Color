@@ -1,0 +1,14 @@
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+main	ColorConversion.cpp	/^int main(int argc, char** argv) {$/;"	f
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+main	ReadingExample.cpp	/^int main(int argc, char **argv) {$/;"	f
+main	WritingExample.cpp	/^int main(int argc, char **argv) {$/;"	f
+main	example1.cpp	/^int main(int argc, char **argv) {$/;"	f
+main	example2.cpp	/^int main(int argc, char **argv) {$/;"	f
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+main	proj1a.cpp	/^int main(int argc, char **argv) {$/;"	f
+main	proj1b.cpp	/^int main(int argc, char **argv) {$/;"	f
+runOnWindow	proj1b.cpp	/^void runOnWindow(int W1, int H1, int W2, int H2, Mat inputImage, char *outName) {$/;"	f
