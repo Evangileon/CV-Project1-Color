@@ -61,6 +61,7 @@ void histogram_equalization(double **L, int rows, int cols, double L_max, double
     for(unsigned i = 0; i < map_length; ++i) {
         int histogram_f = previous_f + histogram[i];
         histogram_map[i] = (previous_f + histogram_f) * map_length / (2 * rows * cols);
+        previous_f = histogram_f;
     }
 
     // map old value to equalized value
