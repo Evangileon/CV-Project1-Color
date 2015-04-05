@@ -82,10 +82,6 @@ const SampleHistogram* sample_window(double **S, int rows, int cols, int W1, int
 
     sample->init_histogram(255);
 
-    int L_max_int = static_cast<int>(sample->S_max);
-    int L_min_int = static_cast<int>(sample->S_min);
-    int map_length = L_max_int - L_min_int + 1;
-
     // histogram
     for (int i = H1 ; i <= H2 ; i++) {
         for (int j = W1 ; j <= W2 ; j++) {
@@ -97,6 +93,10 @@ const SampleHistogram* sample_window(double **S, int rows, int cols, int W1, int
             sample->histogram[static_cast<int>(_S)]++;
         }
     }
+
+    int L_max_int = static_cast<int>(sample->S_max);
+    int L_min_int = static_cast<int>(sample->S_min);
+    int map_length = L_max_int - L_min_int + 1;
 
     sample->map_length = map_length;
 

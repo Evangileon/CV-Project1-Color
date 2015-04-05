@@ -23,49 +23,81 @@ const double Z_W = 1.09;
 
 #define gamma(D) ((D < 0.00304) ? (12.92 * D) : (1.055 * pow(D, 1.0 / 2.4) - 0.055))
 
+class SampleHistogram {
+public:
 
-void histogram_equalization(double **L, int rows, int cols, double L_max, double L_min) {
-    // discretion conversion
-    for(unsigned i = 0; i < rows; ++i) {
-        for(unsigned j = 0; j < cols; ++j) {
-            double _L = static_cast<int>(L[i][j]);
+    int *histogram;
+    int map_length;
+    int rows;
+    int cols;
+    double S_max;
+    double S_min;
 
-            if (_L < 0) {
-                _L = 0;
+    SampleHistogram(int _rows, int _cols) {
+        histogram = NULL;
+        map_length = 0;
+        rows = _rows;
+        cols = _cols;
+        S_max = -1;
+        S_min = 256;
+    }
+    ~SampleHistogram() {
+        if (histogram != NULL) {
+            delete[] histogram;
+            histogram = NULL;
+        }   
+    }
+
+    void init_histogram(int length) {
+        map_length = length;
+        histogram = new int[map_length];
+        
+        for(unsigned i = 0; i < map_length; ++i) {
+            histogram[i] = 0;
+        }
+    }
+};
+
+const SampleHistogram* sample_window(double **S, int rows, int cols, int W1, int H1, int W2, int H2) {
+    SampleHistogram *sample = new SampleHistogram(rows, cols);
+
+    sample->init_histogram(255);
+
+    // histogram
+    for (int i = H1 ; i <= H2 ; i++) {
+        for (int j = W1 ; j <= W2 ; j++) {
+            double _S = S[i][j];
+
+            if (_S > 100) {
+                _S = 100;
             }
 
-            if (_L > 100) {
-                _L = 100;
+            if (_S < 0) {
+                _S = 0;
             }
 
-            L[i][j] = _L;
+            sample->S_max = max(_S, sample->S_max);
+            sample->S_min = min(_S, sample->S_min);
+
+            sample->histogram[static_cast<int>(_S)]++;
         }
     }
 
-    int L_max_int = static_cast<int>(L_max);
-    int L_min_int = static_cast<int>(L_min);
-
+    int L_max_int = static_cast<int>(sample->S_max);
+    int L_min_int = static_cast<int>(sample->S_min);
     int map_length = L_max_int - L_min_int + 1;
+
+    sample->map_length = map_length;
+
+    return sample;
+}
+
+
+void histogram_equalization(double **L, int rows, int cols, double L_max, double L_min, int *histogram, int map_length) {
+
     int *histogram_map = new int[map_length];
     for(unsigned i = 0; i < map_length; ++i) {
         histogram_map[i] = 0;
-    }
-
-    int *histogram = new int[map_length];
-    for(unsigned i = 0; i < map_length; ++i) {
-        histogram[i] = 0;
-    }
-
-    // histogram
-    for(unsigned i = 0; i < rows; ++i) {
-        for(unsigned j = 0; j < cols; ++j) {
-            double _L = L[i][j];
-            if (_L > 100 || _L < 0) {
-                continue;
-            }
-
-            histogram[static_cast<int>(_L)]++;
-        }
     }
 
     // equalization
@@ -80,8 +112,13 @@ void histogram_equalization(double **L, int rows, int cols, double L_max, double
     for (int i = 0 ; i < rows ; i++) {
         for (int j = 0 ; j < cols ; j++) {
             double _L = L[i][j];
-            if (_L > 100 || _L < 0) {
-                continue;
+            
+            if (_L > 100) {
+                _L = 100;
+            }
+
+            if (_L < 0) {
+                _L = 0;
             }
 
             L[i][j] = histogram_map[static_cast<int>(_L)];
@@ -89,30 +126,49 @@ void histogram_equalization(double **L, int rows, int cols, double L_max, double
     }
 
     delete[] histogram_map;
-    delete[] histogram;
 }
 
 
 int main(int argc, char **argv) {
-    
-
-    if (argc != 2) {
+    if (argc != 7) {
         cerr << argv[0] << ": "
-             << "got " << argc - 1 << " arguments. Expecting one: an image."
-             << endl;
-        return (-1);
-    }
-    Mat inputImage = imread(argv[1], CV_LOAD_IMAGE_UNCHANGED);  // Read the image
-    if (inputImage.empty()) {
-        cerr <<  "Could not open or find the image " << argv[1] << endl ;
+             << "got " << argc - 1
+             << " arguments. Expecting six: w1 h1 w2 h2 ImageIn ImageOut."
+             << endl ;
+        cerr << "Example: proj1 0.2 0.1 0.8 0.5 fruits.jpg out.bmp" << endl;
         return (-1);
     }
 
-    cout << "Image name: " << argv[1] << endl;
+    double w1 = atof(argv[1]);
+    double h1 = atof(argv[2]);
+    double w2 = atof(argv[3]);
+    double h2 = atof(argv[4]);
+    char *inputName = argv[5];
+    char *outputName = argv[6];
+
+    if (w1 < 0 || h1 < 0 || w2 <= w1 || h2 <= h1 || w2 > 1 || h2 > 1) {
+        cerr << " arguments must satisfy 0 <= w1 < w2 <= 1"
+             << " ,  0 <= h1 < h2 <= 1" << endl;
+        return (-1);
+    }
+
+    Mat inputImage = imread(inputName, CV_LOAD_IMAGE_UNCHANGED);  // Read the image
+    if (inputImage.empty()) {
+        cerr <<  "Could not open or find the image " << inputName << endl ;
+        return (-1);
+    }
+
+    cout << "Image name: " << inputName << endl;
     imshow("input", inputImage);
 
     int rows = inputImage.rows;
     int cols = inputImage.cols;
+
+    // window size
+    int W1 = (int) (w1 * (cols - 1));
+    int H1 = (int) (h1 * (rows - 1));
+    int W2 = (int) (w2 * (cols - 1));
+    int H2 = (int) (h2 * (rows - 1));
 
     // first method: access image pixel by pixel, save values in int[][][] array
     // this is not the recommended approach
@@ -255,8 +311,11 @@ int main(int argc, char **argv) {
         }
     }
 
+    // capturing based on window
+    const SampleHistogram *sample = sample_window(L, rows, cols, W1, H1, W2, H2);
+
     // linear scaling on L
-    histogram_equalization(L, rows, cols, L_max, L_min);
+    histogram_equalization(L, rows, cols, L_max, L_min, sample->histogram, sample->map_length);
 
     // transform back to RGB
     Mat R2(rows, cols, CV_8UC1);
@@ -331,6 +390,7 @@ int main(int argc, char **argv) {
     merge(Luv_planes, 3, Luv);
     namedWindow("Luv Linear Scaling", CV_WINDOW_AUTOSIZE);
     imshow("Luv Linear Scaling", Luv);
+    imwrite(outputName, Luv);
     cin.get();
     waitKey(0);  // Wait for a keystroke
     return (0);
