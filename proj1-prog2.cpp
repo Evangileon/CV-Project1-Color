@@ -21,6 +21,8 @@ const double Z_W = 1.09;
 
 #define invgamma(v) ((v < 0.03928) ? (v / 12.92) : (pow((v + 0.055) / 1.055, 2.4)))
 
+#define gamma(D) ((D < 0.00304) ? (12.92 * D) : (1.055 * pow(D, 1.0 / 2.4) - 0.055))
+
 void linear_scaling(double **L, int rows, int cols, double L_max, double L_min) {
     for (int i = 0 ; i < rows ; i++) {
         for (int j = 0 ; j < cols ; j++) {
@@ -207,11 +209,11 @@ int main(int argc, char **argv) {
             double _X2, _Y2, _Z2;
         
             // Luv -> XYZ
-            double u_prime = static_cast<double>(_u + 13 * uw * _L) / (13 * _L);
-            double v_prime = static_cast<double>(_v + 13 * vw * _L) / (13 * _L);
+            double u_prime = (_u + 13 * uw * _L) / (13 * _L);
+            double v_prime = (_v + 13 * vw * _L) / (13 * _L);
 
             if (_L > 7.9996) {
-                _Y2 = pow((static_cast<double>(_L + 16) / 116), 3) * Y_W;
+                _Y2 = pow(((_L + 16) / 116), 3.0) * Y_W;
             } else {
                 _Y2 = _L * Y_W / 903.3;
             }
@@ -219,12 +221,18 @@ int main(int argc, char **argv) {
             //cout << "Y = " << _Y2 << endl;
 
             _X2 = _Y2 * 2.25 * (u_prime / v_prime);
-            _Z2 = _Y2 * (3 - 0.75 * u_prime - 5 * v_prime) / v_prime;
+            _Z2 = _Y2 * (3.0 - 0.75 * u_prime - 5 * v_prime) / v_prime;
 
-            // XYZ -> sRGB
+            // XYZ -> linear sRGB
             double _R2 = 3.240479 * _X2 - 1.53715 * _Y2 - 0.498535 * _Z2;
             double _G2 = -0.969256 * _X2 + 1.875991 * _Y2 + 0.041556 * _Z2;
-            double _B2 = 0.055648 * _X2 - 0.204043 * _Y2 +  1.057311 * _Z2;
+            double _B2 = 0.055648 * _X2 - 0.204043 * _Y2 + 1.057311 * _Z2;
+
+            // linear sRGB -> non-linear sRGB
+            
+            _R2 = gamma(_R2);
+            _G2 = gamma(_G2);
+            _B2 = gamma(_B2);
 
             // if (_R2 > 1 || _G2 > 1 || _B2 > 1) {
             //     cout << "Error here: R = " << _R2 << ", G = " << _G2 << ", B = " << _B2 << endl;
