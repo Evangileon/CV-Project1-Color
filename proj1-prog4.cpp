@@ -26,7 +26,17 @@ const double Z_W = 1.09;
 void linear_scaling(double **L, int rows, int cols, double L_max, double L_min) {
     for (int i = 0 ; i < rows ; i++) {
         for (int j = 0 ; j < cols ; j++) {
-            L[i][j] = (L[i][j] - L_min) * 1.0 / (L_max - L_min);
+            double _L = (L[i][j] - L_min) * 1.0 / (L_max - L_min);
+
+            if (_L < 0) {
+                _L = 0;
+            }
+
+            if (_L > 100) {
+                _L = 100;
+            }
+
+            L[i][j] = _L;
         }
     }
 }

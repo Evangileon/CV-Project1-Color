@@ -28,7 +28,17 @@ void histogram_equalization(double **L, int rows, int cols, double L_max, double
     // discretion conversion
     for(unsigned i = 0; i < rows; ++i) {
         for(unsigned j = 0; j < cols; ++j) {
-            L[i][j] = static_cast<int>(L[i][j]);
+            double _L = static_cast<int>(L[i][j]);
+
+            if (_L < 0) {
+                _L = 0;
+            }
+
+            if (_L > 100) {
+                _L = 100;
+            }
+
+            L[i][j] = _L;
         }
     }
 
