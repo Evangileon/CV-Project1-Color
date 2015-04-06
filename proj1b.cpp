@@ -77,6 +77,7 @@ int main(int argc, char **argv) {
         cerr << "Example: proj1b 0.2 0.1 0.8 0.5 fruits.jpg out.bmp" << endl;
         return (-1);
     }
+    
     double w1 = atof(argv[1]);
     double h1 = atof(argv[2]);
     double w2 = atof(argv[3]);

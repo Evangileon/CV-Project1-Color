@@ -58,7 +58,7 @@ public:
     }
 };
 
-const SampleHistogram* sample_window(double **S, int rows, int cols, int W1, int H1, int W2, int H2) {
+const SampleHistogram& sample_window(double **S, int rows, int cols, int W1, int H1, int W2, int H2) {
     SampleHistogram *sample = new SampleHistogram(rows, cols);
 
     sample->init_histogram(255);
@@ -89,7 +89,7 @@ const SampleHistogram* sample_window(double **S, int rows, int cols, int W1, int
 
     sample->map_length = map_length;
 
-    return sample;
+    return *sample;
 }
 
 
@@ -113,15 +113,15 @@ void histogram_equalization(double **L, int rows, int cols, double L_max, double
         for (int j = 0 ; j < cols ; j++) {
             double _L = L[i][j];
             
-            if (_L > 100) {
-                _L = 100;
+            if (_L < L_min) {
+            	_L = 0;
+            } else if (_L > L_max) {
+            	_L = 100;
+            } else {
+            	_L = histogram_map[static_cast<int>(_L)];
             }
 
-            if (_L < 0) {
-                _L = 0;
-            }
-
-            L[i][j] = histogram_map[static_cast<int>(_L)];
+            L[i][j] = _L;
         }
     }
 
@@ -312,10 +312,10 @@ int main(int argc, char **argv) {
     }
 
     // capturing based on window
-    const SampleHistogram *sample = sample_window(L, rows, cols, W1, H1, W2, H2);
+    const SampleHistogram& sample = sample_window(L, rows, cols, W1, H1, W2, H2);
 
     // linear scaling on L
-    histogram_equalization(L, rows, cols, L_max, L_min, sample->histogram, sample->map_length);
+    histogram_equalization(L, rows, cols, L_max, L_min, sample.histogram, sample.map_length);
 
     // transform back to RGB
     Mat R2(rows, cols, CV_8UC1);
