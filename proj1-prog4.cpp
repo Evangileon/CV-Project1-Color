@@ -26,74 +26,74 @@ const double Z_W = 1.09;
 class SampleHistogram {
 public:
 
-    int *histogram;
-    int map_length;
-    int rows;
-    int cols;
-    double S_max;
-    double S_min;
+	int *histogram;
+	int map_length;
+	int rows;
+	int cols;
+	double S_max;
+	double S_min;
 
-    SampleHistogram(int _rows, int _cols) {
-        histogram = NULL;
-        map_length = 0;
-        rows = _rows;
-        cols = _cols;
-        S_max = -1;
-        S_min = 256;
-    }
-    ~SampleHistogram() {
-        if (histogram != NULL) {
-            delete[] histogram;
-            histogram = NULL;
-        }
-    }
+	SampleHistogram(int _rows, int _cols) {
+		histogram = NULL;
+		map_length = 0;
+		rows = _rows;
+		cols = _cols;
+		S_max = -1;
+		S_min = 256;
+	}
+	~SampleHistogram() {
+		if (histogram != NULL) {
+			delete[] histogram;
+			histogram = NULL;
+		}
+	}
 
-    void init_histogram(int length) {
-        map_length = length;
-        histogram = new int[map_length];
+	void init_histogram(int length) {
+		map_length = length;
+		histogram = new int[map_length];
 
-        for(unsigned i = 0; i < map_length; ++i) {
-            histogram[i] = 0;
-        }
-    }
+		for (unsigned i = 0; i < map_length; ++i) {
+			histogram[i] = 0;
+		}
+	}
 };
 
 const SampleHistogram& sample_window(double **S, int rows, int cols, int W1, int H1, int W2, int H2) {
-    SampleHistogram *sample = new SampleHistogram(rows, cols);
+	SampleHistogram *sample = new SampleHistogram(rows, cols);
 
-    sample->init_histogram(255);
+	sample->init_histogram(255);
 
-    // histogram
-    for (int i = H1 ; i <= H2 ; i++) {
-        for (int j = W1 ; j <= W2 ; j++) {
-            double _S = S[i][j];
+	// histogram
+	for (int i = H1 ; i <= H2 ; i++) {
+		for (int j = W1 ; j <= W2 ; j++) {
+			double _S = S[i][j];
 
-            if (_S > 100) {
-                _S = 1;
-            }
+			if (_S > 100) {
+				_S = 1;
+			}
 
-            if (_S < 0) {
-                _S = 0;
-            }
+			if (_S < 0) {
+				_S = 0;
+			}
 
-            sample->S_max = max(_S, sample->S_max);
-            sample->S_min = min(_S, sample->S_min);
+			sample->S_max = max(_S, sample->S_max);
+			sample->S_min = min(_S, sample->S_min);
 
-            sample->histogram[static_cast<int>(_S)]++;
-        }
-    }
+			sample->histogram[static_cast<int>(_S)]++;
+		}
+	}
 
-    int L_max_int = static_cast<int>(sample->S_max);
-    int L_min_int = static_cast<int>(sample->S_min);
-    int map_length = L_max_int - L_min_int + 1;
+	int L_max_int = static_cast<int>(sample->S_max);
+	int L_min_int = static_cast<int>(sample->S_min);
+	int map_length = L_max_int - L_min_int + 1;
 
-    sample->map_length = map_length;
+	sample->map_length = map_length;
 
-    return *sample;
+	return *sample;
 }
 
 void linear_scaling(double **L, int rows, int cols, double L_max,
-		double L_min) {
+                    double L_min) {
 	for (int i = 0; i < rows; i++) {
 		for (int j = 0; j < cols; j++) {
 			double _L = L[i][j];
@@ -115,8 +115,8 @@ int main(int argc, char **argv) {
 
 	if (argc != 7) {
 		cerr << argv[0] << ": " << "got " << argc - 1
-				<< " arguments. Expecting six: w1 h1 w2 h2 ImageIn ImageOut."
-				<< endl;
+		     << " arguments. Expecting six: w1 h1 w2 h2 ImageIn ImageOut."
+		     << endl;
 		cerr << "Example: proj1 0.2 0.1 0.8 0.5 fruits.jpg out.bmp" << endl;
 		return (-1);
 	}
@@ -130,7 +130,7 @@ int main(int argc, char **argv) {
 
 	if (w1 < 0 || h1 < 0 || w2 <= w1 || h2 <= h1 || w2 > 1 || h2 > 1) {
 		cerr << " arguments must satisfy 0 <= w1 < w2 <= 1"
-				<< " ,  0 <= h1 < h2 <= 1" << endl;
+		     << " ,  0 <= h1 < h2 <= 1" << endl;
 		return (-1);
 	}
 
@@ -184,7 +184,7 @@ int main(int argc, char **argv) {
 			for (int j = 0; j < cols; j++) {
 				const int *pij = colorValues[i][j];
 				cout << "(" << pij[0] << "," << pij[1] << "," << pij[2]
-						<< "), ";
+				     << "), ";
 			}
 			cout << endl;
 		}
@@ -326,9 +326,18 @@ int main(int argc, char **argv) {
 			int b2 = static_cast<int>(_B2 * 255);
 
 			// matrix assign
-			R2.at<uchar>(i, j) = r2 <= 255 ? r2 : 255;
-			G2.at<uchar>(i, j) = g2 <= 255 ? g2 : 255;
-			B2.at<uchar>(i, j) = b2 <= 255 ? b2 : 255;
+			r2 = (r2 > 255) ? 255 : r2;
+			g2 = (g2 > 255) ? 255 : g2;
+			b2 = (b2 > 255) ? 255 : b2;
+
+			r2 = (r2 < 0) ? 0 : r2;
+			g2 = (g2 < 0) ? 0 : g2;
+			b2 = (b2 < 0) ? 0 : b2;
+
+			// matrix assign
+			R2.at<uchar>(i, j) = r2;
+			G2.at<uchar>(i, j) = g2;
+			B2.at<uchar>(i, j) = b2;
 		}
 	}
 

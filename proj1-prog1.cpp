@@ -132,12 +132,14 @@ int main(int argc, char **argv) {
     merge(xyY_planes, 3, xyY);
     namedWindow("xyY", CV_WINDOW_AUTOSIZE);
     imshow("xyY", xyY);
+    imwrite("xyY.png", xyY);
 
     Mat Luv;
     Mat Luv_planes[] = {B2, G2, R2};
     merge(Luv_planes, 3, Luv);
     namedWindow("Luv", CV_WINDOW_AUTOSIZE);
     imshow("Luv", Luv);
+    imwrite("Luv.png", Luv);
     cin.get();
     waitKey(0);  // Wait for a keystroke
     return (0);

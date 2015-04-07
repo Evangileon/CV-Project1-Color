@@ -45,14 +45,14 @@ public:
         if (histogram != NULL) {
             delete[] histogram;
             histogram = NULL;
-        }   
+        }
     }
 
     void init_histogram(int length) {
         map_length = length;
         histogram = new int[map_length];
-        
-        for(unsigned i = 0; i < map_length; ++i) {
+
+        for (unsigned i = 0; i < map_length; ++i) {
             histogram[i] = 0;
         }
     }
@@ -96,13 +96,13 @@ const SampleHistogram& sample_window(double **S, int rows, int cols, int W1, int
 void histogram_equalization(double **L, int rows, int cols, double L_max, double L_min, int *histogram, int map_length) {
 
     int *histogram_map = new int[map_length];
-    for(unsigned i = 0; i < map_length; ++i) {
+    for (unsigned i = 0; i < map_length; ++i) {
         histogram_map[i] = 0;
     }
 
     // equalization
     int previous_f = 0;
-    for(unsigned i = 0; i < map_length; ++i) {
+    for (unsigned i = 0; i < map_length; ++i) {
         int histogram_f = previous_f + histogram[i];
         histogram_map[i] = (previous_f + histogram_f) * map_length / (2 * rows * cols);
         previous_f = histogram_f;
@@ -112,13 +112,13 @@ void histogram_equalization(double **L, int rows, int cols, double L_max, double
     for (int i = 0 ; i < rows ; i++) {
         for (int j = 0 ; j < cols ; j++) {
             double _L = L[i][j];
-            
+
             if (_L < L_min) {
-            	_L = 0;
+                _L = 0;
             } else if (_L > L_max) {
-            	_L = 100;
+                _L = 100;
             } else {
-            	_L = histogram_map[static_cast<int>(_L)];
+                _L = histogram_map[static_cast<int>(_L)];
             }
 
             L[i][j] = _L;
@@ -266,7 +266,7 @@ int main(int argc, char **argv) {
             double _R = static_cast<double>(R[i][j]) / 255;
             double _G = static_cast<double>(G[i][j]) / 255;
             double _B = static_cast<double>(B[i][j]) / 255;
-            
+
             _R = invgamma(_R);
             _G = invgamma(_G);
             _B = invgamma(_B);
@@ -328,7 +328,7 @@ int main(int argc, char **argv) {
             double _u = u[i][j];
             double _v = v[i][j];
             double _X2, _Y2, _Z2;
-        
+
             // Luv -> XYZ
             double u_prime = static_cast<double>(_u + 13 * uw * _L) / (13 * _L);
             double v_prime = static_cast<double>(_v + 13 * vw * _L) / (13 * _L);
@@ -362,9 +362,18 @@ int main(int argc, char **argv) {
             int b2 = static_cast<int>(_B2 * 255);
 
             // matrix assign
-            R2.at<uchar>(i, j) = r2 <= 255 ? r2 : 255;
-            G2.at<uchar>(i, j) = g2 <= 255 ? g2 : 255;
-            B2.at<uchar>(i, j) = b2 <= 255 ? b2 : 255;
+            r2 = (r2 > 255) ? 255 : r2;
+            g2 = (g2 > 255) ? 255 : g2;
+            b2 = (b2 > 255) ? 255 : b2;
+
+            r2 = (r2 < 0) ? 0 : r2;
+            g2 = (g2 < 0) ? 0 : g2;
+            b2 = (b2 < 0) ? 0 : b2;
+
+            // matrix assign
+            R2.at<uchar>(i, j) = r2;
+            G2.at<uchar>(i, j) = g2;
+            B2.at<uchar>(i, j) = b2;
         }
     }
 

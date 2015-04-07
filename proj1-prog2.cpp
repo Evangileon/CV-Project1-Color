@@ -23,7 +23,7 @@ const double Z_W = 1.09;
 #define gamma(D) ((D < 0.00304) ? (12.92 * D) : (1.055 * pow(D, 1.0 / 2.4) - 0.055))
 
 void linear_scaling(double **L, int rows, int cols, double L_max,
-		double L_min) {
+                    double L_min) {
 	for (int i = 0; i < rows; i++) {
 		for (int j = 0; j < cols; j++) {
 			double _L = L[i][j];
@@ -77,7 +77,7 @@ public:
 };
 
 const SampleHistogram& sample_window(double **S, int rows, int cols, int W1,
-		int H1, int W2, int H2) {
+                                     int H1, int W2, int H2) {
 	SampleHistogram *sample = new SampleHistogram(rows, cols);
 
 	sample->init_histogram(255);
@@ -107,8 +107,8 @@ int main(int argc, char **argv) {
 
 	if (argc != 7) {
 		cerr << argv[0] << ": " << "got " << argc - 1
-				<< " arguments. Expecting six: w1 h1 w2 h2 ImageIn ImageOut."
-				<< endl;
+		     << " arguments. Expecting six: w1 h1 w2 h2 ImageIn ImageOut."
+		     << endl;
 		cerr << "Example: proj1 0.2 0.1 0.8 0.5 fruits.jpg out.bmp" << endl;
 		return (-1);
 	}
@@ -122,7 +122,7 @@ int main(int argc, char **argv) {
 
 	if (w1 < 0 || h1 < 0 || w2 <= w1 || h2 <= h1 || w2 > 1 || h2 > 1) {
 		cerr << " arguments must satisfy 0 <= w1 < w2 <= 1"
-				<< " ,  0 <= h1 < h2 <= 1" << endl;
+		     << " ,  0 <= h1 < h2 <= 1" << endl;
 		return (-1);
 	}
 
@@ -176,7 +176,7 @@ int main(int argc, char **argv) {
 			for (int j = 0; j < cols; j++) {
 				const int *pij = colorValues[i][j];
 				cout << "(" << pij[0] << "," << pij[1] << "," << pij[2]
-						<< "), ";
+				     << "), ";
 			}
 			cout << endl;
 		}
@@ -285,7 +285,7 @@ int main(int argc, char **argv) {
 
 	// capturing based on window
 	const SampleHistogram& sample = sample_window(L, rows, cols, W1, H1, W2,
-			H2);
+	                                H2);
 
 	cout << sample.S_max << " " << sample.S_min << endl;
 
@@ -339,9 +339,18 @@ int main(int argc, char **argv) {
 			int b2 = static_cast<int>(_B2 * 255);
 
 			// matrix assign
-			R2.at<uchar>(i, j) = r2 <= 255 ? r2 : 255;
-			G2.at<uchar>(i, j) = g2 <= 255 ? g2 : 255;
-			B2.at<uchar>(i, j) = b2 <= 255 ? b2 : 255;
+			r2 = (r2 > 255) ? 255 : r2;
+			g2 = (g2 > 255) ? 255 : g2;
+			b2 = (b2 > 255) ? 255 : b2;
+
+			r2 = (r2 < 0) ? 0 : r2;
+			g2 = (g2 < 0) ? 0 : g2;
+			b2 = (b2 < 0) ? 0 : b2;
+
+			// matrix assign
+			R2.at<uchar>(i, j) = r2;
+			G2.at<uchar>(i, j) = g2;
+			B2.at<uchar>(i, j) = b2;
 		}
 	}
 
